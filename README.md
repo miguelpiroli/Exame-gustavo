@@ -3,3 +3,5 @@
 Professor:Gustavo
 
 Miguel Ramos Pires de Oliveira_1999181
+
+NOVA FUNCIONALIDADE: BUSCAR JOGADORES POR POSIÇÃO (TUPLA)
