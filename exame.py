@@ -139,20 +139,28 @@ def mostrar_lesoes():
         return
     jogadores[nome_jogador].lesoes.exibir_lesoes()
 
-def buscar_jogadores_por_posicao():
-    posicao = input("Digite a posição que deseja buscar: ").lower()
-    encontrados = []
-
-    for jogador in jogadores.values():
-        if jogador.posicao_jogador.lower() == posicao:
-            encontrados.append( (jogador.nome_jogador, jogador.idade_jogador) ) 
-
-    if encontrados:
-        print(f"\nJogadores na posição '{posicao}':")
-        for nome, idade in encontrados:
-            print(f"- {nome}, {idade} anos")
+def buscar_jogadores_por_clube_e_posicao():
+    nome_clube = input("Nome do clube: ")
+    posicao = input("Posição desejada: ")
+    
+    if nome_clube not in clubes:
+        print("Clube não encontrado.")
+        return
+    
+    clube = clubes[nome_clube]
+    jogadores_filtrados = []
+    
+    for nome_jogador in clube.elenco:
+        jogador = jogadores[nome_jogador]
+        if jogador.posicao_jogador.lower() == posicao.lower():
+            jogadores_filtrados.append(jogador)
+    
+    if not jogadores_filtrados:
+        print(f"Nenhum jogador encontrado na posição {posicao} no {nome_clube}.")
     else:
-        print("Nenhum jogador encontrado nessa posição.")
+        print(f"Jogadores do {nome_clube} na posição {posicao}:")
+        for jogador in jogadores_filtrados:
+            print(f"- {jogador.nome_jogador} (Idade: {jogador.idade_jogador})")
 
 def menu():
     while True:
@@ -165,7 +173,7 @@ def menu():
         print("6. Exibir histórico de transferências")
         print("7. Registrar lesão")
         print("8. Mostrar lesões")
-        print("9. Buscar jogadores por posição")
+        print("9. Buscar jogadores por clube e posição")  
         print("0. Sair")
         opcao = input("Escolha: ")
         if opcao == "1":
@@ -185,7 +193,7 @@ def menu():
         elif opcao == "8":
             mostrar_lesoes()
         elif opcao == "9":
-            buscar_jogadores_por_posicao()
+            buscar_jogadores_por_clube_e_posicao()
         elif opcao == "0":
             print("Encerrando...")
             break
