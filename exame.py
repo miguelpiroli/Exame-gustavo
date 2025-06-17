@@ -18,7 +18,7 @@ class ListaEncadeadaLesoes:
             self.inicio = novo_no
         else:
             atual = self.inicio
-            while atual.proximo: 
+            while atual.proximo:
                 atual = atual.proximo
             atual.proximo = novo_no
 
@@ -32,6 +32,57 @@ class ListaEncadeadaLesoes:
             print(f"- {atual.tipo_lesao} em {atual.data_lesao}, duração: {atual.duracao_lesao}")
             atual = atual.proximo
 
+class NoJogador:
+    def __init__(self, jogador):
+        self.jogador = jogador
+        self.proximo = None
+        self.anterior = None
+
+class ListaDuplamenteEncadeadaJogadores:
+    def __init__(self):
+        self.inicio = None
+        self.fim = None
+
+    def adicionar(self, jogador):
+        novo_no = NoJogador(jogador)
+        if not self.inicio:
+            self.inicio = self.fim = novo_no
+        else:
+            self.fim.proximo = novo_no
+            novo_no.anterior = self.fim
+            self.fim = novo_no
+
+    def listar(self):
+        atual = self.inicio
+        while atual:
+            print(f"- {atual.jogador.nome_jogador} (Posição: {atual.jogador.posicao_jogador}, Idade: {atual.jogador.idade_jogador})")
+            atual = atual.proximo
+
+    def buscar_por_posicao(self, posicao):
+        atual = self.inicio
+        encontrados = []
+        while atual:
+            if atual.jogador.posicao_jogador.lower() == posicao.lower():
+                encontrados.append(atual.jogador)
+            atual = atual.proximo
+        return encontrados
+
+    def remover(self, jogador):
+        atual = self.inicio
+        while atual:
+            if atual.jogador == jogador:
+                if atual.anterior:
+                    atual.anterior.proximo = atual.proximo
+                else:
+                    self.inicio = atual.proximo
+                if atual.proximo:
+                    atual.proximo.anterior = atual.anterior
+                else:
+                    self.fim = atual.anterior
+                return True
+            atual = atual.proximo
+        return False
+
 class Jogador:
     def __init__(self, nome_jogador, idade_jogador, posicao_jogador):
         self.nome_jogador = nome_jogador
@@ -44,7 +95,7 @@ class Jogador:
 class Clube:
     def __init__(self, nome_clube):
         self.nome_clube = nome_clube
-        self.elenco = set()
+        self.elenco = ListaDuplamenteEncadeadaJogadores()
         self.valor_mercado = 0
 
 def cadastrar_clube():
@@ -68,36 +119,46 @@ def cadastrar_jogador():
 def associar_jogador_clube():
     nome_jogador = input("Nome do jogador: ")
     nome_clube = input("Nome do clube: ")
+
     if nome_jogador not in jogadores or nome_clube not in clubes:
         print("Jogador ou clube não encontrado.")
         return
+
     jogador = jogadores[nome_jogador]
     clube = clubes[nome_clube]
+
     if jogador.clube_atual:
         print(f"Jogador já pertence ao clube '{jogador.clube_atual}'")
         return
+
     jogador.clube_atual = nome_clube
-    clube.elenco.add(nome_jogador)
+    clube.elenco.adicionar(jogador)
     clube.valor_mercado += 10
     print(f"Jogador '{nome_jogador}' agora joga no '{nome_clube}'.")
 
 def transferir_jogador():
     nome_jogador = input("Nome do jogador: ")
     clube_destino = input("Clube destino: ")
+
     if nome_jogador not in jogadores or clube_destino not in clubes:
         print("Jogador ou clube não encontrado.")
         return
+
     valor_transferencia = float(input("Valor da transferência: "))
     jogador = jogadores[nome_jogador]
     clube_origem = jogador.clube_atual
+
     if clube_origem == clube_destino:
         print("Jogador já pertence a esse clube.")
         return
+
     if clube_origem:
-        clubes[clube_origem].elenco.discard(nome_jogador)
+        clubes[clube_origem].elenco.remover(jogador)
         clubes[clube_origem].valor_mercado -= 10
-    clubes[clube_destino].elenco.add(nome_jogador)
+
+    clubes[clube_destino].elenco.adicionar(jogador)
     clubes[clube_destino].valor_mercado += 10
+
     jogador.clube_atual = clube_destino
     jogador.historico_transferencias.append((clube_origem, clube_destino, valor_transferencia))
     print(f"Transferência: {nome_jogador} de {clube_origem} para {clube_destino} por R${valor_transferencia:.2f}")
@@ -108,8 +169,7 @@ def listar_elenco():
         print("Clube não encontrado.")
         return
     print(f"Elenco do {nome_clube}:")
-    for nome_jogador in clubes[nome_clube].elenco:
-        print("-", nome_jogador)
+    clubes[nome_clube].elenco.listar()
 
 def exibir_historico_transferencias():
     print("\nHistórico de transferências:")
@@ -142,26 +202,20 @@ def mostrar_lesoes():
 def buscar_jogadores_por_clube_e_posicao():
     nome_clube = input("Nome do clube: ")
     posicao = input("Posição desejada: ")
-    
+
     if nome_clube not in clubes:
         print("Clube não encontrado.")
         return
-    
+
     clube = clubes[nome_clube]
-    jogadores_filtrados = []
-    
-    for nome_jogador in clube.elenco:
-        jogador = jogadores[nome_jogador]
-        if jogador.posicao_jogador.lower() == posicao.lower():
-            jogadores_filtrados.append(jogador)
-    
-    if not jogadores_filtrados:
+    jogadores_encontrados = clube.elenco.buscar_por_posicao(posicao)
+
+    if not jogadores_encontrados:
         print(f"Nenhum jogador encontrado na posição {posicao} no {nome_clube}.")
     else:
         print(f"Jogadores do {nome_clube} na posição {posicao}:")
-        for jogador in jogadores_filtrados:
+        for jogador in jogadores_encontrados:
             print(f"- {jogador.nome_jogador} (Idade: {jogador.idade_jogador})")
-
 def menu():
     while True:
         print("\n--- Menu ---")
@@ -173,7 +227,7 @@ def menu():
         print("6. Exibir histórico de transferências")
         print("7. Registrar lesão")
         print("8. Mostrar lesões")
-        print("9. Buscar jogadores por clube e posição")  
+        print("9. Buscar jogadores por clube e posição")
         print("0. Sair")
         opcao = input("Escolha: ")
         if opcao == "1":
